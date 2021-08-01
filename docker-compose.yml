@@ -1,0 +1,59 @@
+version: '3.4'
+
+services:
+  solarcoffee.api:
+    container_name: SolarAPI
+    image: ${DOCKER_REGISTRY-}solarcoffeeapi
+    build:
+      context: .
+      dockerfile: SolarCoffee.API/Dockerfile
+    ports:
+      - "5003:5000"
+      - "5004:5001"
+
+  
+  solarcoffee.database:
+    container_name: SolarDataBase
+    image: postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin1234
+      - POSTGRES_DB=DiscountDb
+    restart: always
+    ports:
+        - "5433:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=test@test.test
+      - PGADMIN_DEFAULT_PASSWORD=testtest1
+    restart: always
+    ports:
+        - "5051:80"
+    volumes:
+      - ./pgadmin_data:/root/.pgadmin
+    depends_on:
+      - solarcoffee.database
+
+
+  portainer:
+    image: portainer/portainer-ce
+    container_name: portainer
+    ports:
+      - "8080:8000"
+      - "9000:9000"
+    restart: always
+    volumes:
+      -  /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer_data:/data
+    depends_on:
+      - solarcoffee.database
+
+volumes:
+  portainer_data:
+  postgres_data:
+  pgadmin_data:
